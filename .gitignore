@@ -1,0 +1,17 @@
+# Environment variables (JANGAN ikut ke GitHub!)
+.env
+
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Raw screenshots (hanya upload yang sudah diproses)
+screenshots/raw/
