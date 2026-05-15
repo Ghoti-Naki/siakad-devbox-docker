@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>SIAKAD - Daftar Mahasiswa</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background: #f5f5f5; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #4a90d9; color: white; }
+        .btn { padding: 6px 12px; border-radius: 4px; text-decoration: none; color: white; cursor: pointer; }
+        .btn-primary { background: #4a90d9; }
+        .btn-warning { background: #f0a500; }
+        .btn-danger { background: #e74c3c; border: none; }
+    </style>
+</head>
+<body>
+    <h1>Sistem Informasi Akademik</h1>
+    <a href="/mahasiswa/create" class="btn btn-primary">+ Tambah Mahasiswa</a>
+    <br><br>
+    <table>
+        <thead>
+            <tr>
+                <th>No</th><th>NIM</th><th>Nama</th><th>Email</th><th>Prodi</th><th>Dokumen</th><th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% mahasiswaList.forEach((mhs, i) => { %>
+            <tr>
+                <td><%= i + 1 %></td>
+                <td><%= mhs.nim %></td>
+                <td><%= mhs.nama %></td>
+                <td><%= mhs.email %></td>
+                <td><%= mhs.program_studi %></td>
+                <td>
+                    <% if (mhs.file_url) { %>
+                        <a href="<%= mhs.file_url %>" target="_blank">Lihat File</a>
+                    <% } else { %> - <% } %>
+                </td>
+                <td>
+                    <a href="/mahasiswa/<%= mhs.id %>/edit" class="btn btn-warning">Edit</a>
+                    <form action="/mahasiswa/<%= mhs.id %>/delete" method="POST" style="display:inline">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Hapus data ini?')">Hapus</button>
+                    </form>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+</html>
