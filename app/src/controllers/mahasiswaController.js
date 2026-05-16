@@ -1,37 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const controller = require('../controllers/mahasiswaController');
-
-//filtr file
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Format file tidak didukung! Gunakan PDF atau Gambar.'), false);
-  }
-};
-
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, 
-  fileFilter: fileFilter
-});
-
-//route mhs
-router.get('/', controller.index);
-router.get('/mahasiswa/create', controller.createForm);
-router.post('/mahasiswa', upload.single('dokumen'), controller.store);
-router.get('/mahasiswa/:id/edit', controller.editForm);
-router.post('/mahasiswa/:id/update', controller.update);
-router.post('/mahasiswa/:id/delete', controller.destroy);
-
-module.exports = router;
 const pool = require('../config/db');
 const minioClient = require('../config/minio');
 const BUCKET_NAME = process.env.MINIO_BUCKET || 'student-documents';
 
-//tampil mhs
+//1. tampi mhs
 exports.index = async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM mahasiswa ORDER BY created_at DESC');
@@ -42,13 +13,12 @@ exports.index = async (req, res) => {
   }
 };
 
-//form add mhs
+// 2. form add mhs
 exports.createForm = (req, res) => {
   res.render('create');
 };
 
-
-//simpan data mhs 
+//3. store data mhs + upload file ke minio
 exports.store = async (req, res) => {
   const { nim, nama, email, program_studi } = req.body;
   let nama_file = null;
@@ -78,7 +48,7 @@ exports.store = async (req, res) => {
   }
 };
 
-//form edit mhs
+//4. form edit mhs
 exports.editForm = async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM mahasiswa WHERE id = $1', [req.params.id]);
@@ -88,7 +58,7 @@ exports.editForm = async (req, res) => {
   }
 };
 
-//update data mhs
+//5. update data mhs (tanpa update file)
 exports.update = async (req, res) => {
   const { nim, nama, email, program_studi } = req.body;
   try {
@@ -102,7 +72,7 @@ exports.update = async (req, res) => {
   }
 };
 
-//hapus data mhs
+//6. delete data mhs + delete file di minio
 exports.destroy = async (req, res) => {
   try {
     const student = await pool.query('SELECT nama_file FROM mahasiswa WHERE id = $1', [req.params.id]);
@@ -121,24 +91,3 @@ exports.destroy = async (req, res) => {
     res.status(500).send('Gagal menghapus data dan file');
   }
 };
-
-//ini add on
-exports.destroy = async (req, res) => {
-  try {
-    const student = await pool.query('SELECT nama_file FROM mahasiswa WHERE id = $1', [req.params.id]);
-    const fileName = student.rows[0]?.nama_file;
-
-    await pool.query('DELETE FROM mahasiswa WHERE id = $1', [req.params.id]);
-
-    if (fileName) {
-      await minioClient.removeObject(BUCKET_NAME, fileName);
-      console.log(`✔ File ${fileName} dihapus dari MinIO`);
-    }
-
-    res.redirect('/');
-  } catch (err) {
-    console.error('X Gagal menghapus:', err.message);
-    res.status(500).send('Gagal menghapus data dan file');
-  }
-};
-
