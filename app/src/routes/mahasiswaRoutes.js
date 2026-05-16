@@ -11,9 +11,9 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 🌟 
+  limits: { fileSize: 5 * 1024 * 1024 }, 
   fileFilter: fileFilter
 });
 
@@ -23,5 +23,6 @@ router.post('/mahasiswa', upload.single('dokumen'), controller.store);
 router.get('/mahasiswa/:id/edit', controller.editForm);
 router.post('/mahasiswa/:id/update', upload.single('dokumen'), controller.update);
 router.post('/mahasiswa/:id/delete', controller.destroy);
+router.get('/mahasiswa/file/:filename', controller.downloadFile);
 
 module.exports = router;
