@@ -21,7 +21,7 @@ router.get('/', controller.index);
 router.get('/mahasiswa/create', controller.createForm);
 router.post('/mahasiswa', upload.single('dokumen'), controller.store);
 router.get('/mahasiswa/:id/edit', controller.editForm);
-router.post('/mahasiswa/:id/update', controller.update);
+router.post('/mahasiswa/:id/update', upload.single('dokumen'), controller.update);
 router.post('/mahasiswa/:id/delete', controller.destroy);
 
 module.exports = router;

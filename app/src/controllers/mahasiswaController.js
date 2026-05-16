@@ -58,17 +58,47 @@ exports.editForm = async (req, res) => {
   }
 };
 
-//5. update data mhs (tanpa update file)
+// 5. Update Data Mahasiswa (Mendukung Pembaruan Teks + Berkas MinIO)
 exports.update = async (req, res) => {
   const { nim, nama, email, program_studi } = req.body;
+  const { id } = req.params;
+
   try {
+    const currentData = await pool.query('SELECT nama_file, file_url FROM mahasiswa WHERE id = $1', [id]);
+    let nama_file = currentData.rows[0]?.nama_file;
+    let file_url = currentData.rows[0]?.file_url;
+
+    if (req.file) {
+      if (nama_file) {
+        try {
+          await minioClient.removeObject(BUCKET_NAME, nama_file);
+          console.log(`✔ Berkas lama ${nama_file} dibersihkan dari MinIO.`);
+        } catch (minioErr) {
+          console.error('X Gagal menghapus berkas lama di MinIO:', minioErr.message);
+        }
+      }
+
+      nama_file = Date.now() + '-' + req.file.originalname;
+      await minioClient.putObject(
+        BUCKET_NAME,
+        nama_file,
+        req.file.buffer,
+        req.file.size,
+        { 'Content-Type': req.file.mimetype }
+      );
+      
+      file_url = `/mahasiswa/file/${nama_file}`;
+    }
+
     await pool.query(
-      'UPDATE mahasiswa SET nim = $1, nama = $2, email = $3, program_studi = $4 WHERE id = $5',
-      [nim, nama, email, program_studi, req.params.id]
+      'UPDATE mahasiswa SET nim = $1, nama = $2, email = $3, program_studi = $4, nama_file = $5, file_url = $6 WHERE id = $7',
+      [nim, nama, email, program_studi, nama_file, file_url, id]
     );
+
     res.redirect('/');
   } catch (err) {
-    res.status(500).send('Gagal update data');
+    console.error('X Gagal memperbarui data:', err.message);
+    res.status(500).send('Gagal mengupdate data dan berkas mahasiswa');
   }
 };
 

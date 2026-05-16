@@ -13,8 +13,8 @@
   </style>
 </head>
 <body>
-  <h1>✏️ Edit Mahasiswa</h1>
-  <form action="/mahasiswa/<%= mahasiswa.id %>/update" method="POST">
+  <h1>Edit Mahasiswa</h1>
+  <form action="/mahasiswa/<%= mahasiswa.id %>/update" method="POST" enctype="multipart/form-data">
     <label>NIM</label>
     <input type="text" name="nim" value="<%= mahasiswa.nim %>" required>
     
@@ -26,6 +26,15 @@
     
     <label>Program Studi</label>
     <input type="text" name="program_studi" value="<%= mahasiswa.program_studi %>">
+
+    <label style="margin-top: 15px;">Ganti Dokumen / Foto Baru (PDF/JPG/PNG)</label>
+    <input type="file" name="dokumen" accept=".pdf,.jpg,.jpeg,.png">
+    
+    <% if (mahasiswa.nama_file) { %>
+      <p style="font-size: 0.85em; color: #666; margin-top: 5px;">
+        📄 Berkas saat ini: <a href="<%= mahasiswa.file_url %>" target="_blank" style="font-weight: bold;"><%= mahasiswa.nama_file %></a>
+      </p>
+    <% } %>
     
     <button type="submit" class="btn">💾 Update</button>
   </form>
