@@ -47,7 +47,8 @@ exports.createForm = (req, res) => {
   res.render('create');
 };
 
-//simpan data mhs
+
+//simpan data mhs 
 exports.store = async (req, res) => {
   const { nim, nama, email, program_studi } = req.body;
   let nama_file = null;
@@ -140,3 +141,4 @@ exports.destroy = async (req, res) => {
     res.status(500).send('Gagal menghapus data dan file');
   }
 };
+
