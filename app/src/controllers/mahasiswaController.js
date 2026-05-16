@@ -18,7 +18,7 @@ exports.createForm = (req, res) => {
   res.render('create');
 };
 
-//3. store data mhs + upload file ke minio
+// 3. Simpan Mahasiswa Baru + Upload File ke MinIO
 exports.store = async (req, res) => {
   const { nim, nama, email, program_studi } = req.body;
   let nama_file = null;
@@ -34,7 +34,7 @@ exports.store = async (req, res) => {
         req.file.size,
         { 'Content-Type': req.file.mimetype }
       );
-      file_url = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${BUCKET_NAME}/${nama_file}`;
+      file_url = `/mahasiswa/file/${nama_file}`;
     }
 
     await pool.query(
@@ -89,5 +89,18 @@ exports.destroy = async (req, res) => {
   } catch (err) {
     console.error('X Gagal menghapus:', err.message);
     res.status(500).send('Gagal menghapus data dan file');
+  }
+};
+
+//minio ke browser
+exports.downloadFile = async (req, res) => {
+  try {
+    const fileName = req.params.filename;
+    const stream = await minioClient.getObject(BUCKET_NAME, fileName);
+    
+    stream.pipe(res);
+  } catch (err) {
+    console.error('X Gagal mengambil berkas dari MinIO:', err.message);
+    res.status(404).send('Berkas tidak ditemukan');
   }
 };
