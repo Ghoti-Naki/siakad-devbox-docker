@@ -27,13 +27,11 @@ router.post('/mahasiswa/:id/update', controller.update);
 router.post('/mahasiswa/:id/delete', controller.destroy);
 
 module.exports = router;
-
 const pool = require('../config/db');
 const minioClient = require('../config/minio');
 const BUCKET_NAME = process.env.MINIO_BUCKET || 'student-documents';
 
-//part 5
-//1. tampilkan mhs
+//tampil mhs
 exports.index = async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM mahasiswa ORDER BY created_at DESC');
@@ -44,12 +42,12 @@ exports.index = async (req, res) => {
   }
 };
 
-//2. tambah mhs
+//form add mhs
 exports.createForm = (req, res) => {
   res.render('create');
 };
 
-//3. save mhs + filter file
+//simpan data mhs
 exports.store = async (req, res) => {
   const { nim, nama, email, program_studi } = req.body;
   let nama_file = null;
@@ -79,7 +77,7 @@ exports.store = async (req, res) => {
   }
 };
 
-//4. edit mhs
+//form edit mhs
 exports.editForm = async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM mahasiswa WHERE id = $1', [req.params.id]);
@@ -89,7 +87,7 @@ exports.editForm = async (req, res) => {
   }
 };
 
-//5. update mhs
+//update data mhs
 exports.update = async (req, res) => {
   const { nim, nama, email, program_studi } = req.body;
   try {
@@ -103,16 +101,27 @@ exports.update = async (req, res) => {
   }
 };
 
-//6. delete mhs
+//hapus data mhs
 exports.destroy = async (req, res) => {
   try {
+    const student = await pool.query('SELECT nama_file FROM mahasiswa WHERE id = $1', [req.params.id]);
+    const fileName = student.rows[0]?.nama_file;
+
     await pool.query('DELETE FROM mahasiswa WHERE id = $1', [req.params.id]);
+
+    if (fileName) {
+      await minioClient.removeObject(BUCKET_NAME, fileName);
+      console.log(`✔ File ${fileName} berhasil dihapus dari MinIO`);
+    }
+
     res.redirect('/');
   } catch (err) {
-    res.status(500).send('Gagal menghapus data');
+    console.error('X Gagal menghapus:', err.message);
+    res.status(500).send('Gagal menghapus data dan file');
   }
 };
 
+//ini add on
 exports.destroy = async (req, res) => {
   try {
     const student = await pool.query('SELECT nama_file FROM mahasiswa WHERE id = $1', [req.params.id]);
